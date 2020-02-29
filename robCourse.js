@@ -3,30 +3,10 @@
 // Name: uestc-course-robbing
 // Author: https://github.com/saafo
 // Homepage: https://github.com/Saafo/uestc-course-robbing
-// Version: Pre_V0.1.0 Unfinished Preview
+// Version: Pre_V0.2.0 Unfinished Preview
 // License: MIT-License
 
 function task(cName, tName, cSequence) {
-    //Notification permission check
-    if (window.Notification) {
-        if(Notification.permission !== 'granted') {
-            if(Notification.permission == 'denied') {
-                alert('请允许当前页面的通知');
-                return;
-            }
-            //default
-            console.log('请允许当前页面的通知')
-            Notification.requestPermission().then(function (permission) {
-                if(permission != 'granted') {
-                    alert('请允许当前页面的通知，否则无法提醒抢课情况变化');
-                    return;
-                }
-            });
-        }
-    } else {
-        alert('请使用支持通知的浏览器，如chrome/firefox');
-        return;
-    }
     //Select the table
     table = null;
     table = document.getElementById('electableLessonList');
@@ -38,20 +18,17 @@ function task(cName, tName, cSequence) {
     tbody = table.children[1];
     rows = tbody.children;
     taskRow = null;
-    try {
-        rows.forEach(element => {
-            if(element.children[1] == cName) { //课程名称
-                if(element.children[3] == tName) { //老师名字
-                    taskRow = element;
-                    throw(new Error("StopIteration"));
-                }
+    for(i = 0; i < rows.length; i++) {
+        element = rows[i];
+        if(element.children[1].textContent == cName) { //课程名称
+            if(element.children[3].textContent == tName) { //老师名字
+                taskRow = element;
+                break;
             }
-        });        
-    } catch (Error) {
-        console.log('找到课程');
+        }
     }
     if(taskRow == null) {
-        alert('没有找到指定的老师或课程名，请检查错误')
+        alert('没有找到指定的老师或课程名，请检查错误');
         return;
     }
     for(i = 0;i < cSequence;i++) {
@@ -75,19 +52,12 @@ function task(cName, tName, cSequence) {
         console.log('confirm:'+str);
         return true;
     }
-    // status = taskTd.textContent;
-    // while(status.slice(-2,) == '/0') { //当满员时循环
-    //     var now = new Date();
-    //     console.log(now.getHours()+':'+now.getMinutes()+':'+now.getSeconds()+'已刷新：'+status);
-    //     await sleep(5000); //TODO:ajax是5000ms刷新一次吗?
-    //     status = taskTd.textContent;
-    // }
     button = taskRow.children[10];
     while(button.textContent == '选课') {
         localStorage.setItem('alertMsg','');
         localStorage.setItem('confirmMsg','');
         if(button.textContent == '选课') {
-            eval(button.getAttribute('onclick')); //执行选课
+            eval(button.getAttribute('onclick')); //执行选课,但信息门户加了`X-Content-Type-Options:nosniff`参数导致无法执行，还在寻找解决方案
         } else {
             console.log('已经选课');
             return;
@@ -110,13 +80,10 @@ function task(cName, tName, cSequence) {
             console.log('课程冲突，请手动取消冲突课程');
             return;
         }
-        else if(alertMsg == '') {
+        else if(alertMsg == '' && confirmMsg.indexOf('确认') > 0) {
+            var now = new Date();
             console.log(now.getHours()+':'+now.getMinutes()+':'+now.getSeconds()+'选课成功');
             break;
         }
     }
-    //notify
-    var Notification = new Notification('选课成功', {
-        body: tName+' 的 '+cName+' 选课成功'
-    });
 }
